@@ -1,35 +1,36 @@
+using BaGet.Protocol;
+using BaGet.Protocol.Models;
+using Microsoft.Extensions.Logging;
+using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGet.Protocol;
-using BaGet.Protocol.Models;
-using Microsoft.Extensions.Logging;
-using NuGet.Versioning;
 
 namespace BaGet.Core
 {
-    using PackageIdentity = NuGet.Packaging.Core.PackageIdentity;
-
     public class MirrorService : IMirrorService
     {
         private readonly IPackageService _localPackages;
         private readonly NuGetClient _upstreamClient;
         private readonly IPackageIndexingService _indexer;
         private readonly ILogger<MirrorService> _logger;
+        private readonly IUrlGenerator _url;
 
         public MirrorService(
             IPackageService localPackages,
             NuGetClient upstreamClient,
             IPackageIndexingService indexer,
-            ILogger<MirrorService> logger)
+            ILogger<MirrorService> logger,
+            IUrlGenerator url)
         {
             _localPackages = localPackages ?? throw new ArgumentNullException(nameof(localPackages));
             _upstreamClient = upstreamClient ?? throw new ArgumentNullException(nameof(upstreamClient));
             _indexer = indexer ?? throw new ArgumentNullException(nameof(indexer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _url = url;
         }
 
         public async Task<IReadOnlyList<NuGetVersion>> FindPackageVersionsOrNullAsync(
@@ -86,6 +87,33 @@ namespace BaGet.Core
                 "Finished indexing {PackageId} {PackageVersion} from the upstream feed",
                 id,
                 version);
+        }
+
+        /// <summary>
+        /// Perform a search query.
+        /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages
+        /// </summary>
+        /// <param name="query">The search query.</param>
+        /// <param name="skip">How many results to skip.</param>
+        /// <param name="take">How many results to return.</param>
+        /// <param name="includePrerelease">Whether pre-release packages should be returned.</param>
+        /// <param name="includeSemVer2">Whether packages that require SemVer 2.0.0 compatibility should be returned.</param>
+        /// <param name="packageType">The type of packages that should be returned.</param>
+        /// <param name="framework">The Target Framework that results should be compatible.</param>
+        /// <param name="cancellationToken">A token to cancel the task.</param>
+        /// <returns>The search response.</returns>
+        public async Task<SearchResponse> SearchAsync(
+            string query = null,
+            int skip = 0,
+            int take = 20,
+            bool includePrerelease = true,
+            bool includeSemVer2 = true,
+            string packageType = null,
+            string framework = null,
+            CancellationToken cancellationToken = default)
+        {
+            var result = await _upstreamClient.SearchAsync(query, includePrerelease, skip, take, cancellationToken);
+            return new SearchResponse { Data = result, TotalHits = result.Count, Context = SearchContext.Default(_url.GetPackageMetadataResourceUrl()) };
         }
 
         private Package ToPackage(PackageMetadata metadata)

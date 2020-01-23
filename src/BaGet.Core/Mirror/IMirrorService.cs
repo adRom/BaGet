@@ -1,7 +1,8 @@
+using BaGet.Protocol.Models;
+using NuGet.Versioning;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using NuGet.Versioning;
 
 namespace BaGet.Core
 {
@@ -42,5 +43,28 @@ namespace BaGet.Core
         /// <param name="cancellationToken">The token to cancel the mirroring</param>
         /// <returns>A task that completes when the package has been mirrored.</returns>
         Task MirrorAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Perform a search query.
+        /// See: https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource#search-for-packages
+        /// </summary>
+        /// <param name="query">The search query.</param>
+        /// <param name="skip">How many results to skip.</param>
+        /// <param name="take">How many results to return.</param>
+        /// <param name="includePrerelease">Whether pre-release packages should be returned.</param>
+        /// <param name="includeSemVer2">Whether packages that require SemVer 2.0.0 compatibility should be returned.</param>
+        /// <param name="packageType">The type of packages that should be returned.</param>
+        /// <param name="framework">The Target Framework that results should be compatible.</param>
+        /// <param name="cancellationToken">A token to cancel the task.</param>
+        /// <returns>The search response.</returns>
+        Task<SearchResponse> SearchAsync(
+            string query = null,
+            int skip = 0,
+            int take = 20,
+            bool includePrerelease = true,
+            bool includeSemVer2 = true,
+            string packageType = null,
+            string framework = null,
+            CancellationToken cancellationToken = default);
     }
 }
