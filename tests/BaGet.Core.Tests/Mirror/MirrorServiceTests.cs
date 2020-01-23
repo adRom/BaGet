@@ -1,7 +1,7 @@
-using System.Threading.Tasks;
 using BaGet.Protocol;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace BaGet.Core.Tests.Mirror
@@ -52,6 +52,7 @@ namespace BaGet.Core.Tests.Mirror
             private readonly Mock<IPackageService> _packages;
             private readonly Mock<NuGetClient> _upstream;
             private readonly Mock<IPackageIndexingService> _indexer;
+            private readonly Mock<IUrlGenerator> _url;
 
             private readonly MirrorService _target;
 
@@ -60,12 +61,13 @@ namespace BaGet.Core.Tests.Mirror
                 _packages = new Mock<IPackageService>();
                 _upstream = new Mock<NuGetClient>();
                 _indexer = new Mock<IPackageIndexingService>();
+                _url = new Mock<IUrlGenerator>();
 
                 _target = new MirrorService(
                     _packages.Object,
                     _upstream.Object,
                     _indexer.Object,
-                    Mock.Of<ILogger<MirrorService>>());
+                    Mock.Of<ILogger<MirrorService>>(), _url.Object);
             }
         }
     }
