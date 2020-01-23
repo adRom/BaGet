@@ -48,7 +48,11 @@ namespace BaGet
                 await host.RunAsync(cancellationToken);
             });
 
-            await app.ExecuteAsync(args);
+            // TODO next line should be
+            // await app.ExecuteAsync(args);
+            // but there is an issue in aspnetcore which causes an error on startup when debugging
+            // https://developercommunityapi.westus.cloudapp.azure.com/content/problem/845413/aspnet-core-web-project-gets-passed-a-launcher-arg.html
+            await app.ExecuteAsync(default);
         }
 
         public static IHostBuilder CreateWebHostBuilder(string[] args) =>
