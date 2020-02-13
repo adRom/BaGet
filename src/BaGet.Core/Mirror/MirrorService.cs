@@ -112,7 +112,7 @@ namespace BaGet.Core
             string framework = null,
             CancellationToken cancellationToken = default)
         {
-            var result = await _upstreamClient.SearchAsync(query, includePrerelease, skip, take, cancellationToken);
+            var result = await _upstreamClient.SearchAsync(query, skip, take, includePrerelease, cancellationToken);
             return new SearchResponse { Data = result, TotalHits = result.Count, Context = SearchContext.Default(_url.GetPackageMetadataResourceUrl()) };
         }
 
