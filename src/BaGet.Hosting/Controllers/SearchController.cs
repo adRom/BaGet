@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGet.Controllers
+namespace BaGet.Hosting
 {
     public class SearchController : Controller
     {
@@ -20,7 +20,7 @@ namespace BaGet.Controllers
             _mirrorService = mirrorService;
         }
 
-        public async Task<ActionResult<SearchResponse>> SearchAsync(
+        public Task<ActionResult<SearchResponse>> SearchAsync(
             [FromQuery(Name = "q")] string query = null,
             [FromQuery]int skip = 0,
             [FromQuery]int take = 20,
@@ -53,20 +53,26 @@ namespace BaGet.Controllers
                                 packageType,
                                 framework,
                                 cancellationToken);
-            return await Merge(cachedTask, nugetTask);
+            return Merge(cachedTask, nugetTask);
         }
 
         private async Task<ActionResult<SearchResponse>> Merge(Task<SearchResponse> cachedTask, Task<SearchResponse> nugetTask)
         {
-            var nugetResponse = await nugetTask;
-            var cacheResponse = await cachedTask;
-            var nugetResponseData = (nugetResponse?.Data ?? new List<SearchResult>());
+            var nugetResponse = await nugetTask.ConfigureAwait(false);
+            var cacheResponse = await cachedTask.ConfigureAwait(false);
+            var nugetResponseData = nugetResponse?.Data ?? new List<SearchResult>();
             var cacheResponseData = cacheResponse.Data;
 
-            var searchResults = nugetResponseData.Union(cacheResponseData) // combine both lists
+            // VS expects 26 packages, but shows only 25, so make sure we deliver only 26
+            // additional packages would disappear
+            var diff = Math.Abs(nugetResponseData.Count - cacheResponseData.Count);
+            nugetResponseData = nugetResponseData.Take(diff).ToList();
+
+            var searchResults = cacheResponseData.Union(nugetResponseData) // combine both lists - cached packages are preferred over nuget packages to show
                 .GroupBy(o => o.PackageId) // group by package id
+                .OrderBy(o => o.Count())
                 .Select(o => o.OrderByDescending(p => p.TotalDownloads).First()); // take the package with most downloads
-            // this way, nuget packages are preferred over cached packages to show
+
             var searchResponse = new SearchResponse { Context = null, Data = searchResults.ToList() };
             searchResponse.TotalHits = searchResponse.Data.Count;
             return searchResponse;
