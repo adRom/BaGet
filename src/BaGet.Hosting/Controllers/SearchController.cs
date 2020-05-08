@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGet.Controllers
+namespace BaGet.Hosting
 {
     public class SearchController : Controller
     {
