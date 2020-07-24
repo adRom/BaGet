@@ -16,7 +16,7 @@ namespace BaGet.Core
 
         public virtual BaGetRegistrationIndexResponse BuildIndex(PackageRegistration registration)
         {
-            var versions = registration.Packages.Select(p => p.Version).ToList();
+            var sortedPackages = registration.Packages.OrderBy(p => p.Version).ToList();
 
             // TODO: Paging of registration items.
             // "Un-paged" example: https://api.nuget.org/v3/registration3/newtonsoft.json/index.json
@@ -29,28 +29,27 @@ namespace BaGet.Core
                 TotalDownloads = registration.Packages.Sum(p => p.Downloads),
                 Pages = new[]
                 {
-                    new RegistrationIndexPage
+                    new BaGetRegistrationIndexPage
                     {
                         RegistrationPageUrl = _url.GetRegistrationIndexUrl(registration.PackageId),
                         Count = registration.Packages.Count(),
-                        Lower = versions.Min().ToNormalizedString().ToLowerInvariant(),
-                        Upper = versions.Max().ToNormalizedString().ToLowerInvariant(),
-                        ItemsOrNull = registration.Packages.Select(ToRegistrationIndexPageItem).ToList(),
+                        Lower = sortedPackages.First().Version.ToNormalizedString().ToLowerInvariant(),
+                        Upper = sortedPackages.Last().Version.ToNormalizedString().ToLowerInvariant(),
+                        ItemsOrNull = sortedPackages.Select(ToRegistrationIndexPageItem).ToList(),
                     }
                 }
             };
         }
 
-        public virtual BaGetRegistrationLeafResponse BuildLeaf(Package package)
+        public virtual RegistrationLeafResponse BuildLeaf(Package package)
         {
             var id = package.Id;
             var version = package.Version;
 
-            return new BaGetRegistrationLeafResponse
+            return new RegistrationLeafResponse
             {
                 Type = RegistrationLeafResponse.DefaultType,
                 Listed = package.Listed,
-                Downloads = package.Downloads,
                 Published = package.Published,
                 RegistrationLeafUrl = _url.GetRegistrationLeafUrl(id, version),
                 PackageContentUrl = _url.GetPackageDownloadUrl(id, version),
@@ -58,8 +57,8 @@ namespace BaGet.Core
             };
         }
 
-        private RegistrationIndexPageItem ToRegistrationIndexPageItem(Package package) =>
-            new RegistrationIndexPageItem
+        private BaGetRegistrationIndexPageItem ToRegistrationIndexPageItem(Package package) =>
+            new BaGetRegistrationIndexPageItem
             {
                 RegistrationLeafUrl = _url.GetRegistrationLeafUrl(package.Id, package.Version),
                 PackageContentUrl = _url.GetPackageDownloadUrl(package.Id, package.Version),

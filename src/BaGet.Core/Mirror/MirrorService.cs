@@ -231,7 +231,7 @@ namespace BaGet.Core
 
             try
             {
-                using (var stream = await _upstreamClient.GetPackageStreamAsync(id, version, cancellationToken))
+                using (var stream = await _upstreamClient.DownloadPackageAsync(id, version, cancellationToken))
                 {
                     packageStream = await stream.AsTemporaryFileStreamAsync();
                 }

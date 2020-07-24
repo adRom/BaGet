@@ -12,7 +12,7 @@ using NuGet.Versioning;
 namespace BaGet.Protocol
 {
     /// <summary>
-    /// The <see cref="NuGetClient"/> allows you to interact with a NuGet server.
+    /// The client to interact with a NuGet server.
     /// </summary>
     public class NuGetClient
     {
@@ -63,6 +63,7 @@ namespace BaGet.Protocol
             _contentClient = clientFactory.CreatePackageContentClient();
             _metadataClient = clientFactory.CreatePackageMetadataClient();
             _searchClient = clientFactory.CreateSearchClient();
+            _autocompleteClient = clientFactory.CreateAutocompleteClient();
         }
 
         /// <summary>
@@ -114,9 +115,9 @@ namespace BaGet.Protocol
         /// <exception cref="PackageNotFoundException">
         ///     The package could not be found.
         /// </exception>
-        public virtual async Task<Stream> GetPackageStreamAsync(string packageId, NuGetVersion packageVersion, CancellationToken cancellationToken = default)
+        public virtual async Task<Stream> DownloadPackageAsync(string packageId, NuGetVersion packageVersion, CancellationToken cancellationToken = default)
         {
-            var stream = await _contentClient.GetPackageContentStreamOrNullAsync(packageId, packageVersion, cancellationToken);
+            var stream = await _contentClient.DownloadPackageOrNullAsync(packageId, packageVersion, cancellationToken);
 
             if (stream == null)
             {
@@ -136,9 +137,12 @@ namespace BaGet.Protocol
         /// <exception cref="PackageNotFoundException">
         ///     The package could not be found.
         /// </exception>
-        public virtual async Task<Stream> GetPackageManifestStreamAsync(string packageId, NuGetVersion packageVersion, CancellationToken cancellationToken = default)
+        public virtual async Task<Stream> DownloadPackageManifestAsync(
+            string packageId,
+            NuGetVersion packageVersion,
+            CancellationToken cancellationToken = default)
         {
-            var stream = await _contentClient.GetPackageManifestStreamOrNullAsync(packageId, packageVersion, cancellationToken);
+            var stream = await _contentClient.DownloadPackageManifestOrNullAsync(packageId, packageVersion, cancellationToken);
 
             if (stream == null)
             {
@@ -154,7 +158,9 @@ namespace BaGet.Protocol
         /// <param name="packageId">The package ID.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>The package's listed versions, if any.</returns>
-        public virtual async Task<IReadOnlyList<NuGetVersion>> ListPackageVersionsAsync(string packageId, CancellationToken cancellationToken)
+        public virtual async Task<IReadOnlyList<NuGetVersion>> ListPackageVersionsAsync(
+            string packageId,
+            CancellationToken cancellationToken = default)
         {
             // TODO: Use the Autocomplete's enumerate versions endpoint if this is not Sleet.
             var packages = await GetPackageMetadataAsync(packageId, cancellationToken);
@@ -172,7 +178,10 @@ namespace BaGet.Protocol
         /// <param name="includeUnlisted">Whether to include unlisted versions.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>The package's versions, or an empty list if the package does not exist.</returns>
-        public virtual async Task<IReadOnlyList<NuGetVersion>> ListPackageVersionsAsync(string packageId, bool includeUnlisted, CancellationToken cancellationToken = default)
+        public virtual async Task<IReadOnlyList<NuGetVersion>> ListPackageVersionsAsync(
+            string packageId,
+            bool includeUnlisted,
+            CancellationToken cancellationToken = default)
         {
             if (!includeUnlisted)
             {
@@ -195,7 +204,9 @@ namespace BaGet.Protocol
         /// <param name="packageId">The package ID.</param>
         /// <param name="cancellationToken">A token to cancel the task.</param>
         /// <returns>The package's metadata, or an empty list if the package does not exist.</returns>
-        public virtual async Task<IReadOnlyList<PackageMetadata>> GetPackageMetadataAsync(string packageId, CancellationToken cancellationToken = default)
+        public virtual async Task<IReadOnlyList<PackageMetadata>> GetPackageMetadataAsync(
+            string packageId,
+            CancellationToken cancellationToken = default)
         {
             var result = new List<PackageMetadata>();
 
@@ -240,7 +251,10 @@ namespace BaGet.Protocol
         /// <exception cref="PackageNotFoundException">
         ///     The package could not be found.
         /// </exception>
-        public virtual async Task<PackageMetadata> GetPackageMetadataAsync(string packageId, NuGetVersion packageVersion, CancellationToken cancellationToken = default)
+        public virtual async Task<PackageMetadata> GetPackageMetadataAsync(
+            string packageId,
+            NuGetVersion packageVersion,
+            CancellationToken cancellationToken = default)
         {
             var registrationIndex = await _metadataClient.GetRegistrationIndexOrNullAsync(packageId, cancellationToken);
 

@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace BaGet.Core
 {
     public class BaGetOptions
     {
-         /// <summary>
+        /// <summary>
         /// The API Key required to authenticate package
         /// operations. If empty, package operations do not require authentication.
         /// </summary>
@@ -34,20 +33,22 @@ namespace BaGet.Core
         public bool AllowPackageOverwrites { get; set; } = false;
 
         /// <summary>
-        /// If true, disables package pushing, deleting, and relisting.
+        /// If true, disables package pushing, deleting, and re-listing.
         /// </summary>
         public bool IsReadOnlyMode { get; set; } = false;
 
-        [Required]
+        /// <summary>
+        /// The URLs the BaGet server will use.
+        /// As per documentation <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host?view=aspnetcore-3.1#server-urls">here (Server URLs)</a>.
+        /// </summary>
+        public string Urls { get; set; }
+
         public DatabaseOptions Database { get; set; }
 
-        [Required]
         public StorageOptions Storage { get; set; }
 
-        [Required]
         public SearchOptions Search { get; set; }
 
-        [Required]
         public MirrorOptions Mirror { get; set; }
     }
 }

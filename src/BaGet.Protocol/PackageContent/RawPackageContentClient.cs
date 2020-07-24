@@ -35,20 +35,13 @@ namespace BaGet.Protocol.Internal
             CancellationToken cancellationToken = default)
         {
             var id = packageId.ToLowerInvariant();
-
             var url = $"{_packageContentUrl}/{id}/index.json";
-            var response = await _httpClient.DeserializeUrlAsync<PackageVersionsResponse>(url, cancellationToken);
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            return response.GetResultOrThrow();
+            return await _httpClient.GetFromJsonOrDefaultAsync<PackageVersionsResponse>(url, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetPackageContentStreamOrNullAsync(
+        public async Task<Stream> DownloadPackageOrNullAsync(
             string packageId,
             NuGetVersion packageVersion,
             CancellationToken cancellationToken = default)
@@ -69,7 +62,7 @@ namespace BaGet.Protocol.Internal
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetPackageManifestStreamOrNullAsync(
+        public async Task<Stream> DownloadPackageManifestOrNullAsync(
             string packageId,
             NuGetVersion packageVersion,
             CancellationToken cancellationToken = default)

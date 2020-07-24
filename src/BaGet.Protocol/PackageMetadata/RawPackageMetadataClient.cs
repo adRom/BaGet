@@ -1,10 +1,8 @@
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using BaGet.Protocol.Models;
-using NuGet.Versioning;
 
 namespace BaGet.Protocol.Internal
 {
@@ -33,14 +31,8 @@ namespace BaGet.Protocol.Internal
             CancellationToken cancellationToken = default)
         {
             var url = $"{_packageMetadataUrl}/{packageId.ToLowerInvariant()}/index.json";
-            var response = await _httpClient.DeserializeUrlAsync<RegistrationIndexResponse>(url, cancellationToken);
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            return response.GetResultOrThrow();
+            return await _httpClient.GetFromJsonOrDefaultAsync<RegistrationIndexResponse>(url, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -48,29 +40,15 @@ namespace BaGet.Protocol.Internal
             string pageUrl,
             CancellationToken cancellationToken = default)
         {
-            var response = await _httpClient.DeserializeUrlAsync<RegistrationPageResponse>(pageUrl, cancellationToken);
-
-            return response.GetResultOrThrow();
+            return await _httpClient.GetFromJsonAsync<RegistrationPageResponse>(pageUrl, cancellationToken);
         }
 
         /// <inheritdoc />
-        public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(
-            string packageId,
-            NuGetVersion packageVersion,
+        public async Task<RegistrationLeafResponse> GetRegistrationLeafAsync(
+            string leafUrl,
             CancellationToken cancellationToken = default)
         {
-            var id = packageId.ToLowerInvariant();
-            var version = packageVersion.ToNormalizedString().ToLowerInvariant();
-
-            var url = $"{_packageMetadataUrl}/{id}/{version}.json";
-            var response = await _httpClient.DeserializeUrlAsync<RegistrationLeafResponse>(url, cancellationToken);
-
-            if (response.StatusCode == HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-
-            return response.GetResultOrThrow();
+            return await _httpClient.GetFromJsonAsync<RegistrationLeafResponse>(leafUrl, cancellationToken);
         }
     }
 }
