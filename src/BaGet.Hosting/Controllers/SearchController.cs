@@ -70,7 +70,6 @@ namespace BaGet.Hosting
 
             var searchResults = cacheResponseData.Union(nugetResponseData) // combine both lists - cached packages are preferred over nuget packages to show
                 .GroupBy(o => o.PackageId) // group by package id
-                .OrderBy(o => o.Count())
                 .Select(o => o.OrderByDescending(p => p.TotalDownloads).First()); // take the package with most downloads
 
             var searchResponse = new SearchResponse { Context = null, Data = searchResults.ToList() };
